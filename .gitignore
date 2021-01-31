@@ -2,5 +2,5 @@
 /venv/
 /.vscode/
 .DS_STORE
-*.pem
+#*.pem
 /.vs/slnx.sqlite
