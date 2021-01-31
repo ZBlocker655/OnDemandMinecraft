@@ -15,3 +15,5 @@ class Config:
     #Server Memory Size
     #This is default to no memory specification but can be: '-Xmx1024M -Xms1024M ' (KEEP TRAILING SPACE)
     MEMORY_ALLOCATION='' 
+
+    SERVER_PASSWORD = 'Offset-Polished-6'
