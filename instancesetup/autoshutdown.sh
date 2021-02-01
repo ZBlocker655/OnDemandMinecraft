@@ -1,8 +1,8 @@
 #!/bin/sh
 SERVICE='server.jar'
 if ps ax | grep -v grep | grep $SERVICE > /dev/null; then
-    	PLAYERSEMPTY=" There are 0 of a max 5 players online"
-		PLAYERSEMPTY2=" There are 0 of a max of 5 players online"
+    	PLAYERSEMPTY=" There are 0 of a max 20 players online"
+		PLAYERSEMPTY2=" There are 0 of a max of 20 players online"
 	$(screen -S minecraft -p 0 -X stuff "list^M")
 	sleep 5
 	$(screen -S minecraft -p 0 -X stuff "list^M")
