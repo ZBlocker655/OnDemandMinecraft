@@ -1,4 +1,6 @@
 #!/bin/sh
+printenv
+set -x
 SERVICE='server.jar'
 if ps ax | grep -v grep | grep $SERVICE > /dev/null; then
     	PLAYERSEMPTY=" There are 0 of a max 20 players online"
@@ -20,6 +22,7 @@ if ps ax | grep -v grep | grep $SERVICE > /dev/null; then
 		PLAYERSLIST=$(tail -n 1 /home/ubuntu/logs/latest.log | cut -f2 -d"/" | cut -f2 -d":")
 		if [ "$PLAYERSLIST" = "$PLAYERSEMPTY" ] || [ "$PLAYERSLIST" = "$PLAYERSEMPTY2" ]
 		then
+			echo "Server has been idle long enough. Shutting down..."
 			$(sudo /sbin/shutdown -P +1)
 		fi
 	fi
@@ -31,3 +34,4 @@ else
 		$(sudo /sbin/shutdown -P +1)
 	fi
 fi
+set +x
