@@ -7,7 +7,7 @@ class Config:
     ec2_amis = ['ami-0074ee617a234808d']
     ec2_keypair = 'minecraft'
     ec2_secgroups = ['minecraft']
-    ec2_instancetype = 't3.small'
+    ec2_instancetype = 't3.medium'
 
     #SSH Key Path
     SSH_KEY_FILE_PATH = './minecraft.pem'
