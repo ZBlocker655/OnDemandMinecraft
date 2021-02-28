@@ -4,3 +4,7 @@
 .DS_STORE
 #*.pem
 /.vs/slnx.sqlite
+
+# Minecraft server
+crash-reports
+logs
