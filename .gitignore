@@ -8,3 +8,5 @@
 # Minecraft server
 crash-reports
 logs
+instancesetup/crash-reports
+instancesetup/logs
