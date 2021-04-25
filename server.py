@@ -100,9 +100,11 @@ def manageServer(client):
         instance = instances[0]
         state = instance['State']
         stateName = state['Name']
+        print(f"Server instance found with state [{statename}]")
 
         if (stateName == 'stopped') or (stateName == 'shutting-down'):
             #SETUP MULTIPROCESSING HERE INSTEAD OF REDIS
+            print("Attempting start...")
             returnString = startServer(client)
         elif stateName == 'running':
             returnString = 'IP: ' + instance['PublicIpAddress']
