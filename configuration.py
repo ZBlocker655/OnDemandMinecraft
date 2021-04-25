@@ -8,12 +8,3 @@ class Config:
     ec2_keypair = 'minecraft'
     ec2_secgroups = ['minecraft']
     ec2_instancetype = 't3.medium'
-
-    #SSH Key Path
-    SSH_KEY_FILE_PATH = './minecraft.pem'
-
-    #Server Memory Size
-    #This is default to no memory specification but can be: '-Xmx1024M -Xms1024M ' (KEEP TRAILING SPACE)
-    MEMORY_ALLOCATION='' 
-
-    SERVER_PASSWORD = 'Offset-Polished-6'

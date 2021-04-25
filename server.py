@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS, cross_origin
 from multiprocessing import Process
-from configuration import Config
 import json
 import boto3
 import time
@@ -13,7 +12,7 @@ CORS(app)
 
 #Paraminko ssh information
 dirname = os.path.dirname(__file__)
-filename = os.path.join(dirname, Config.SSH_KEY_FILE_PATH)
+filename = os.path.join(dirname, "./minecraft.pem")
 key = paramiko.RSAKey.from_private_key_file(filename)
 sshClient = paramiko.SSHClient()
 sshClient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -23,7 +22,7 @@ def serverWaitOk(instanceIp, client):
 
     checksPassed = False
     status = 'initializing'
-    instanceIds=[Config.INSTANCE_ID]
+    instanceIds=[os.environ['INSTANCE_ID']]
 
     while (not checksPassed) and (status == 'initializing'):
         statusCheckResponse = client.describe_instance_status(InstanceIds = instanceIds)
@@ -47,7 +46,7 @@ def initServerCommands(instanceIp):
         sshClient.connect(hostname=instanceIp, username="ubuntu", pkey=key)
 
         # Execute a command(cmd) after connecting/ssh to an instance
-        stdin, stdout, stderr = sshClient.exec_command("screen -dmS minecraft bash -c 'sudo java " + Config.MEMORY_ALLOCATION + "-jar server.jar nogui'")
+        stdin, stdout, stderr = sshClient.exec_command("screen -dmS minecraft bash -c 'sudo java -jar server.jar nogui'")
         print("COMMAND EXECUTED")
         # close the client connection once the job is done
         sshClient.close()
@@ -67,13 +66,13 @@ def initServerMC():
 
     message = "Password Incorrect!"
 
-    if inputPass == Config.SERVER_PASSWORD:
+    if inputPass == os.environ['SERVER_PASSWORD']:
         #Instantiate server here or return ip address if already running
         client = boto3.client(
             'ec2',
-            aws_access_key_id=Config.ACCESS_KEY,
-            aws_secret_access_key=Config.SECRET_KEY,
-            region_name=Config.ec2_region
+            aws_access_key_id=os.environ['ACCESS_KEY'],
+            aws_secret_access_key=os.environ['SECRET_KEY'],
+            region_name=os.environ['EC2_REGION']
         )
         message = manageServer(client)
     
@@ -85,7 +84,7 @@ def initServerMC():
 def manageServer(client):
     returnString = 'ERROR'
 
-    instanceIds = [Config.INSTANCE_ID]
+    instanceIds = [os.environ['INSTANCE_ID']]
     response = client.describe_instances(InstanceIds = instanceIds)
     reservations = response['Reservations']
     reservation = reservations[0]
@@ -113,7 +112,7 @@ def manageServer(client):
 def startServer(client):
     #Gets proper variables to attempt to instantiate EC2 instance and start minecraft server
     returnString = 'ERROR'
-    instanceIds = [Config.INSTANCE_ID]
+    instanceIds = [os.environ['INSTANCE_ID']]
     response = client.start_instances(InstanceIds = instanceIds)
 
     stateCode = 0
