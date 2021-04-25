@@ -100,7 +100,7 @@ def manageServer(client):
         instance = instances[0]
         state = instance['State']
         stateName = state['Name']
-        print(f"Server instance found with state [{statename}]")
+        print(f"Server instance found with state [{stateName}]")
 
         if (stateName == 'stopped') or (stateName == 'shutting-down'):
             #SETUP MULTIPROCESSING HERE INSTEAD OF REDIS
