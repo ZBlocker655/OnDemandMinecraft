@@ -67,6 +67,8 @@ def initServerMC():
     message = "Password Incorrect!"
 
     if inputPass == os.environ['SERVER_PASSWORD']:
+        print(f"Attempting to start the server with access key {os.environ['ACCESS_KEY'][:9]}...")
+
         #Instantiate server here or return ip address if already running
         client = boto3.client(
             'ec2',
