@@ -150,7 +150,7 @@ def startServer(client, world):
     ipAddress = instance['PublicIpAddress']
     returnString = 'Server is starting, this may take a few minutes.\nIP: ' + ipAddress
     #SETUP MULTIPROCESSING HERE INSTEAD OF REDIS
-    p = Process(target=serverWaitOk, args=(ipAddress, client))
+    p = Process(target=serverWaitOk(world), args=(ipAddress, client))
     p.start()
     return returnString
 
