@@ -51,14 +51,14 @@ def initServerCommands(instanceIp, world):
         # Execute a command(cmd) after connecting/ssh to an instance
         stdin, stdout, stderr = sshClient.exec_command(f"sudo cp server.properties.{world} server.properties")
         for line in stdout:
-            print line
+            print(line)
         for line in stderr:
-            print line
+            print(line)
         stdin, stdout, stderr = sshClient.exec_command("screen -dmS minecraft bash -c 'sudo java -jar server.jar nogui'")
         for line in stdout:
-            print line
+            print(line)
         for line in stderr:
-            print line
+            print(line)
         print("COMMAND EXECUTED")
         # close the client connection once the job is done
         sshClient.close()
