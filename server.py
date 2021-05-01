@@ -18,34 +18,38 @@ sshClient = paramiko.SSHClient()
 sshClient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
 #Waits for the server to reach a valid state so that commands can be executed on the server
-def serverWaitOk(instanceIp, client):
+def serverWaitOk(world):
+    def dynamicServerWaitOk(instanceIp, client):
 
-    checksPassed = False
-    status = 'initializing'
-    instanceIds=[os.environ['INSTANCE_ID']]
+        checksPassed = False
+        status = 'initializing'
+        instanceIds=[os.environ['INSTANCE_ID']]
 
-    while (not checksPassed) and (status == 'initializing'):
-        statusCheckResponse = client.describe_instance_status(InstanceIds = instanceIds)
-        instanceStatuses = statusCheckResponse['InstanceStatuses']
-        instanceStatus = instanceStatuses[0]
-        instanceStatus = instanceStatus['InstanceStatus']
-        status = instanceStatus['Status']
-        checksPassed = status == 'ok'
-        time.sleep(5)
-    
-    if checksPassed:
-        initServerCommands(instanceIp)
-    else:
-        print('An error has occurred booting the server')
+        while (not checksPassed) and (status == 'initializing'):
+            statusCheckResponse = client.describe_instance_status(InstanceIds = instanceIds)
+            instanceStatuses = statusCheckResponse['InstanceStatuses']
+            instanceStatus = instanceStatuses[0]
+            instanceStatus = instanceStatus['InstanceStatus']
+            status = instanceStatus['Status']
+            checksPassed = status == 'ok'
+            time.sleep(5)
+        
+        if checksPassed:
+            initServerCommands(instanceIp, world)
+        else:
+            print('An error has occurred booting the server')
+
+    return dynamicServerWaitOk
     
 #SSH connects to server and executes command to boot minecraft server
-def initServerCommands(instanceIp):
+def initServerCommands(instanceIp, world):
     # Connect/ssh to an instance
     try:
         # Here 'ubuntu' is user name and 'instance_ip' is public IP of EC2
         sshClient.connect(hostname=instanceIp, username="ubuntu", pkey=key)
 
         # Execute a command(cmd) after connecting/ssh to an instance
+        stdin, stdout, stderr = sshClient.exec_command(f"sudo cp server.properties.{world} server.properties")
         stdin, stdout, stderr = sshClient.exec_command("screen -dmS minecraft bash -c 'sudo java -jar server.jar nogui'")
         print("COMMAND EXECUTED")
         # close the client connection once the job is done
@@ -62,6 +66,7 @@ def loadIndex():
 @app.route('/initServerMC', methods = ['POST'])
 def initServerMC():
     inputPass = request.form['pass']
+    world = request.form['world']
     returnData = {}
 
     message = "Password Incorrect!"
@@ -76,14 +81,14 @@ def initServerMC():
             aws_secret_access_key=os.environ['SECRET_KEY'],
             region_name=os.environ['EC2_REGION']
         )
-        message = manageServer(client)
+        message = manageServer(client, world)
     
     print(message)
     return render_template('index.html', ipMessage=message)
 
 
 #Gets IP Address for return to webpage otherwise boots server
-def manageServer(client):
+def manageServer(client, world):
     returnString = 'ERROR'
 
     instanceIds = [os.environ['INSTANCE_ID']]
@@ -105,7 +110,7 @@ def manageServer(client):
         if (stateName == 'stopped') or (stateName == 'shutting-down'):
             #SETUP MULTIPROCESSING HERE INSTEAD OF REDIS
             print("Attempting start...")
-            returnString = startServer(client)
+            returnString = startServer(client, world)
         elif stateName == 'running':
             returnString = 'IP: ' + instance['PublicIpAddress']
         else:
@@ -113,7 +118,7 @@ def manageServer(client):
     return returnString
 
 #Starts the specified AWS Instance from the configuration
-def startServer(client):
+def startServer(client, world):
     #Gets proper variables to attempt to instantiate EC2 instance and start minecraft server
     returnString = 'ERROR'
     instanceIds = [os.environ['INSTANCE_ID']]
