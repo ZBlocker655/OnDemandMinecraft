@@ -1,3 +1,5 @@
+#Minecraft server properties
+#Sat May 01 17:18:32 UTC 2021
 enable-jmx-monitoring=false
 rcon.port=25575
 level-seed=
@@ -13,8 +15,8 @@ generate-structures=true
 difficulty=easy
 network-compression-threshold=256
 max-tick-time=-1
-max-players=8
 use-native-transport=true
+max-players=8
 online-mode=true
 enable-status=true
 allow-flight=false
