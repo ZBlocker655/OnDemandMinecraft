@@ -49,12 +49,7 @@ def initServerCommands(instanceIp, world):
         sshClient.connect(hostname=instanceIp, username="ubuntu", pkey=key)
 
         # Execute a command(cmd) after connecting/ssh to an instance
-        stdin, stdout, stderr = sshClient.exec_command(f"sudo cp server.properties.{world} server.properties")
-        for line in stdout:
-            print(line)
-        for line in stderr:
-            print(line)
-        stdin, stdout, stderr = sshClient.exec_command("screen -dmS minecraft bash -c 'sudo java -jar server.jar nogui'")
+        stdin, stdout, stderr = sshClient.exec_command(f"screen -dmS minecraft bash -c 'sudo java -jar server.jar --world {world} --nogui'")
         for line in stdout:
             print(line)
         for line in stderr:
