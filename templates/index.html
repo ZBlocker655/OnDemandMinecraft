@@ -8,7 +8,7 @@
   </head>
   <body>
     <h1> Threewaters On-Demand Minecraft Server </h1>
-    {% if isinstance(ipMessage, str) and len(ipMessage) > 0 %}
+    {% if ipMessage|length > 0 %}
     <form action="{{ url_for('initServerMC') }}", method="POST">
      <input type="text" name="pass" placeholder="Password"><br>
      <select name="world">
