@@ -9,7 +9,7 @@
   <body>
     <h1> Threewaters On-Demand Minecraft Server </h1>
     {% if ipMessage %}
-    <h2>Currently running at {{ ipMessage }} </h2>
+    <h2>{{ ipMessage }} </h2>
     {% else %}
     <form action="{{ url_for('initServerMC') }}", method="POST">
       <input type="text" name="pass" placeholder="Password"><br>
@@ -20,6 +20,5 @@
       <input type="submit" value="Start Server">
     </form>
     {% endif %}
-    <h2>Server: {{ ipMessage }}, {{ ipMessage|length }}</h2>
   </body>
 </html>

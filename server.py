@@ -115,7 +115,7 @@ def manageServer(client, world):
             print("Attempting start...")
             returnString = startServer(client, world)
         elif stateName == 'running':
-            returnString = 'IP: ' + instance['PublicIpAddress']
+            returnString = 'Already running at IP: ' + instance['PublicIpAddress']
         else:
             returnString = 'ERROR'
     return returnString
