@@ -2,7 +2,8 @@
 /venv/
 /.vscode/
 .DS_STORE
-#*.pem
+*.pem
+*.ppk
 /.vs/slnx.sqlite
 
 # Minecraft server
