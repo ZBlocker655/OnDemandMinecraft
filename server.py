@@ -5,15 +5,13 @@ import json
 import boto3
 import time
 import paramiko
+from io import StringIO
 import os
 
 app = Flask(__name__)
 CORS(app)
 
 #Paraminko ssh information
-dirname = os.path.dirname(__file__)
-filename = os.path.join(dirname, "./minecraft.pem")
-key = paramiko.RSAKey.from_private_key_file(filename)
 sshClient = paramiko.SSHClient()
 sshClient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
@@ -44,7 +42,9 @@ def serverWaitOk(worldData):
     
 #SSH connects to server and executes command to boot minecraft server
 def initServerCommands(instanceIp, worldData):
-    _, worldName = unpackWorldData(worldData)
+    instanceIndex, worldName = unpackWorldData(worldData)
+    raw_key = os.environ[f"SSH_KEY_{instanceIndex}"]
+    key = paramiko.RSAKey.from_private_key(StringIO.StringIO(raw_key))
 
     # Connect/ssh to an instance
     try:
