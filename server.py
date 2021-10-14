@@ -44,7 +44,7 @@ def serverWaitOk(worldData):
 def initServerCommands(instanceIp, worldData):
     instanceIndex, worldName = unpackWorldData(worldData)
     raw_key = os.environ[f"SSH_KEY_{instanceIndex}"]
-    key = paramiko.RSAKey.from_private_key(StringIO.StringIO(raw_key))
+    key = paramiko.RSAKey.from_private_key(StringIO(raw_key))
 
     # Connect/ssh to an instance
     try:
