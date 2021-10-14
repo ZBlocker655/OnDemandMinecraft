@@ -68,33 +68,95 @@ Before deployment it will be important to set the password for the server to sta
 6. Access your site and launch/access your server!
 
 # AWS Instance Configuration
+
 This step will configure the AWS Linux server to run the minecraft server. It will include SSH connecting to the server, gaining admin privileges, installing java, directory setup, moving shell scripts onto the server, and making a CRON job for these shell scripts. Note that this step will include both an SSH client and a File Transfer client (such as FileZilla) on your PC.
-1. The first step will be to get SSH into the server instance. Using the key downloaded from AWS in the section above, add this key to PuTTY or simply access it through command line. The IP address can be obtained by entering the server password on the site, or through the EC2 Dashboard, selecting the iPV4 address from the corresponding instanceID in your configuration file. For MacOS and Linux systems
 
-	<code>ssh -i pathToYourKeyFileHere ubuntu@IPAddress</code>
+## SSH in to the server
 
-2. Make the ubuntu user admin if it isn't already with:
+The first step will be to get SSH into the server instance. Using the key downloaded from AWS in the section above, add this key to PuTTY or simply access it through command line. The IP address can be obtained by entering the server password on the site, or through the EC2 Dashboard, selecting the iPV4 address from the corresponding instanceID in your configuration file. For MacOS and Linux systems
+
+```
+ssh -i pathToYourKeyFileHere ubuntu@IPAddress
+```
+
+## Update packages
+
+Update the packages on the system by typing the command:
+
+```
+sudo apt update
+```
+
+## Make `ubuntu` user admin
+
+Make the ubuntu user admin if it isn't already with:
  
-	<code>adduser ubuntu sudo</code>
+```
+adduser ubuntu sudo
+```
 
-3. The next step will be to install JavaJDK onto your system. For newer versions you may enter:
-	<code>sudo apt install openjdk-11-jdk-headless</code>
-	If this doesn't work you can use <code>sudo apt list</code> and search through these packages for an alternative java version.
+## Install Java
 
-4. Open up an FTP client such as FileZilla and connect to the same address as the same user with the same IP address. Drag all files from the **instanceSetup** folder from this repository, into the root directory of the current user (probably **ubuntu**, for the purposes of these commands I will be using **ubuntu**, but feel free to replace with your own user if appropriate).
+The next step will be to install JavaJDK onto your system.
 
-5.  Download the desired Minecraft server version from [https://www.minecraft.net/en-us/download/server/](https://www.minecraft.net/en-us/download/server/), rename it **server.jar** and drag it into the root directory of the user using FileZilla.
+### For vanilla Minecraft
 
-6. Using the FTP client, create a new folder in the root directory of the current user called **screens**  
+For newer versions you may enter:
+
+```
+sudo apt install openjdk-11-jdk-headless
+```
+
+If this doesn't work you can use <code>sudo apt list</code> and search through these packages for an alternative java version.
+
+### For Forge server
+
+Forge as of 1.17.1 runs on Java 16.
+
+From [this guide](https://www.linuxuprising.com/2021/03/how-to-install-oracle-java-16-on-debian.html)...
+
+- Add the Oracle Java 16 PPA repository (you'll need to follow some prompts here): ```sudo add-apt-repository ppa:linuxuprising/java```
+- `sudo apt update`
+- `sudo su` (to operate as `root` for a bit)
+- `echo "deb http://ppa.launchpad.net/linuxuprising/java/ubuntu focal main" | tee /etc/apt/sources.list.d/linuxuprising-java.list`
+- `apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 73C3DB2A`
+- `apt-get update`
+- `exit` (exit `root` access)
+- `sudo apt install oracle-java16-installer --install-recommends`
+
+## Copy over files
+
+Open up an FTP client such as FileZilla and connect to the same address as the same user with the same IP address. Drag all files from the **instanceSetup** folder from this repository, into the root directory of the current user (probably **ubuntu**, for the purposes of these commands I will be using **ubuntu**, but feel free to replace with your own user if appropriate).
+
+## Edit `server.properties`
+
+If desired, make final edits to `server.properties`.
+
+## Download Minecraft
+
+### Vanilla Minecraft
+
+Download the desired Minecraft server version from [https://www.minecraft.net/en-us/download/server/](https://www.minecraft.net/en-us/download/server/), rename it **server.jar** and drag it into the root directory of the user using FileZilla.
+
+### Forge server
+
+Download the desired Forge installer JAR, copy to the server.
+
+Then run `java -jar forge-x.xx.x-installer.jar --installServer`
+
+## Set up screens folder
+
+1. Using the FTP client, create a new folder in the root directory of the current user called **screens**  
 OR  
 In the SSH client, create a folder in the current directory with the command:
 	<code>sudo mkdir screens</code>
-7. Then execute the following command:
-   <code>sudo chmod 700 /home/ubuntu</code>
-8. Then execute the next command:
-  <code>export SCREENDIR=/home/ubuntu/screens</code>
-9. Then execute the command:
-  <code>sudo crontab /home/ubuntu/crontab -u ubuntu</code>
+1. Then execute the following commands:
+  - <code>sudo chown ubuntu /home/ubuntu/screens</code>
+  - <code>sudo chmod 700 /home/ubuntu</code>
+1. Then execute the next command:
+  - <code>export SCREENDIR=/home/ubuntu/screens</code>
+1. Then execute the command:
+  - <code>sudo crontab /home/ubuntu/crontab -u ubuntu</code>
 
 	Feel free to close the server through the AWS console or execute the command:
 	<code>sudo /sbin/shutdown -P +1</code>

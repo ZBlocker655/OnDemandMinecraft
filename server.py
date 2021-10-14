@@ -18,12 +18,13 @@ sshClient = paramiko.SSHClient()
 sshClient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
 #Waits for the server to reach a valid state so that commands can be executed on the server
-def serverWaitOk(world):
+def serverWaitOk(worldData):
     def dynamicServerWaitOk(instanceIp, client):
 
         checksPassed = False
         status = 'initializing'
-        instanceIds=[os.environ['INSTANCE_ID']]
+        instanceIndex, _ = unpackWorldData(worldData)
+        instanceIds = [os.environ[f'INSTANCE_ID_{instanceIndex}']]
 
         while (not checksPassed) and (status == 'initializing'):
             statusCheckResponse = client.describe_instance_status(InstanceIds = instanceIds)
@@ -35,21 +36,23 @@ def serverWaitOk(world):
             time.sleep(5)
         
         if checksPassed:
-            initServerCommands(instanceIp, world)
+            initServerCommands(instanceIp, worldData)
         else:
             print('An error has occurred booting the server')
 
     return dynamicServerWaitOk
     
 #SSH connects to server and executes command to boot minecraft server
-def initServerCommands(instanceIp, world):
+def initServerCommands(instanceIp, worldData):
+    _, worldName = unpackWorldData(worldData)
+
     # Connect/ssh to an instance
     try:
         # Here 'ubuntu' is user name and 'instance_ip' is public IP of EC2
         sshClient.connect(hostname=instanceIp, username="ubuntu", pkey=key)
 
         # Execute a command(cmd) after connecting/ssh to an instance
-        stdin, stdout, stderr = sshClient.exec_command(f"screen -dmS minecraft bash -c 'sudo java -jar server.jar --world {world} --nogui'")
+        stdin, stdout, stderr = sshClient.exec_command(f"screen -dmS minecraft bash -c 'sudo java -jar server.jar --world {worldName} --nogui'")
         for line in stdout:
             print(line)
         for line in stderr:
@@ -69,7 +72,7 @@ def loadIndex():
 @app.route('/initServerMC', methods = ['POST'])
 def initServerMC():
     inputPass = request.form['pass']
-    world = request.form['world']
+    worldData = request.form['world']
     returnData = {}
 
     message = "Password Incorrect!"
@@ -84,17 +87,18 @@ def initServerMC():
             aws_secret_access_key=os.environ['SECRET_KEY'],
             region_name=os.environ['EC2_REGION']
         )
-        message = manageServer(client, world)
+        message = manageServer(client, worldData)
     
     print(message)
     return render_template('index.html', ipMessage=message)
 
 
 #Gets IP Address for return to webpage otherwise boots server
-def manageServer(client, world):
+def manageServer(client, worldData):
     returnString = 'ERROR'
 
-    instanceIds = [os.environ['INSTANCE_ID']]
+    instanceIndex, _ = unpackWorldData(worldData)
+    instanceIds = [os.environ[f'INSTANCE_ID_{instanceIndex}']]
     response = client.describe_instances(InstanceIds = instanceIds)
     reservations = response['Reservations']
     reservation = reservations[0]
@@ -113,7 +117,7 @@ def manageServer(client, world):
         if (stateName == 'stopped') or (stateName == 'shutting-down'):
             #SETUP MULTIPROCESSING HERE INSTEAD OF REDIS
             print("Attempting start...")
-            returnString = startServer(client, world)
+            returnString = startServer(client, worldData)
         elif stateName == 'running':
             returnString = 'Already running at IP: ' + instance['PublicIpAddress']
         else:
@@ -121,10 +125,11 @@ def manageServer(client, world):
     return returnString
 
 #Starts the specified AWS Instance from the configuration
-def startServer(client, world):
+def startServer(client, worldData):
     #Gets proper variables to attempt to instantiate EC2 instance and start minecraft server
     returnString = 'ERROR'
-    instanceIds = [os.environ['INSTANCE_ID']]
+    instanceIndex, _ = unpackWorldData(worldData)
+    instanceIds = [os.environ[f'INSTANCE_ID_{instanceIndex}']]
     response = client.start_instances(InstanceIds = instanceIds)
 
     stateCode = 0
@@ -153,9 +158,18 @@ def startServer(client, world):
     ipAddress = instance['PublicIpAddress']
     returnString = 'Server is starting, this may take a few minutes.\nIP: ' + ipAddress
     #SETUP MULTIPROCESSING HERE INSTEAD OF REDIS
-    p = Process(target=serverWaitOk(world), args=(ipAddress, client))
+    p = Process(target=serverWaitOk(worldData), args=(ipAddress, client))
     p.start()
     return returnString
+
+
+# Unpacks world data string received from form.
+#   Example: "i0;world" yields (0, "world")
+def unpackWorldData(worldData):
+    fields = worldData.split(";")
+    instanceIndex = int(fields[0][1:])
+    worldName = fields[1]
+    return (instanceIndex, worldName)
 
 
 if __name__ == "__main__":
