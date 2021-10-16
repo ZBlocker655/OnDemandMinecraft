@@ -44,6 +44,9 @@ def serverWaitOk(worldData):
 def initServerCommands(instanceIp, worldData):
     instanceIndex, worldName = unpackWorldData(worldData)
     raw_key = os.environ[f"SSH_KEY_{instanceIndex}"]
+    # When setting private key config in Heroku with: heroku config:set SSH_KEY=$(cat minecraft.pem)
+    # Heroku seems to convert newlines to spaces. We need to convert those back to newlines.
+    raw_key = raw_key.replace(' ', '\n')
     key = paramiko.RSAKey.from_private_key(StringIO(raw_key))
 
     # Connect/ssh to an instance
