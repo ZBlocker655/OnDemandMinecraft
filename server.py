@@ -75,7 +75,7 @@ def loadIndex():
 
 @app.route('/tryKey')
 def tryLoadKey():
-    worldData = request.query_string['world']
+    worldData = request.args.get('world')
     instanceIndex, _ = unpackWorldData(worldData)
     raw_key = os.environ[f"SSH_KEY_{instanceIndex}"]
     raw_key = raw_key.replace(' ', '\n')
