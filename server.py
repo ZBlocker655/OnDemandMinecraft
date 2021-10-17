@@ -47,7 +47,7 @@ def initServerCommands(instanceIp, worldData):
     raw_key = os.environ[f"SSH_KEY_{instanceIndex}"]
     # When setting private key config in Heroku with: heroku config:set SSH_KEY=$(cat minecraft.pem)
     # Heroku seems to convert newlines to spaces. We need to convert those back to newlines.
-    raw_key = raw_key.replace(' ', '\n')
+    raw_key = unpackKeyFromEnvVar(raw_key)
     key = paramiko.RSAKey.from_private_key(StringIO(raw_key))
 
     # Connect/ssh to an instance
@@ -78,7 +78,7 @@ def tryLoadKey():
     worldData = request.args.get('world')
     instanceIndex, _ = unpackWorldData(worldData)
     raw_key = os.environ[f"SSH_KEY_{instanceIndex}"]
-    raw_key = raw_key.replace(' ', '\n')
+    raw_key = unpackKeyFromEnvVar(raw_key)
     testPrivateKey(StringIO(raw_key))
 
 @app.route('/initServerMC', methods = ['POST'])
@@ -182,6 +182,13 @@ def unpackWorldData(worldData):
     instanceIndex = int(fields[0][1:])
     worldName = fields[1]
     return (instanceIndex, worldName)
+
+
+def unpackKeyFromEnvVar(rawKey):
+    keyHead = rawKey[:rawKey.find("KEY-----") + 8]
+    keyTail = rawKey[rawKey.find("-----END"):]
+    keyBody = rawKey[len(keyHead):-len(keyTail)]
+    return keyHead + keyBody.replace(' ', '\n') + keyTail
 
 
 def testPrivateKey(f):
