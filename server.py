@@ -7,6 +7,7 @@ import time
 import paramiko
 from io import StringIO
 import os
+import base64
 
 app = Flask(__name__)
 CORS(app)
@@ -71,6 +72,14 @@ def initServerCommands(instanceIp, worldData):
 @app.route('/')
 def loadIndex():
     return render_template('index.html')
+
+@app.route('/tryKey')
+def tryLoadKey():
+    worldData = request.query_string['world']
+    instanceIndex, _ = unpackWorldData(worldData)
+    raw_key = os.environ[f"SSH_KEY_{instanceIndex}"]
+    raw_key = raw_key.replace(' ', '\n')
+    testPrivateKey(StringIO(raw_key))
 
 @app.route('/initServerMC', methods = ['POST'])
 def initServerMC():
@@ -173,6 +182,62 @@ def unpackWorldData(worldData):
     instanceIndex = int(fields[0][1:])
     worldName = fields[1]
     return (instanceIndex, worldName)
+
+
+def testPrivateKey(f):
+    tag = "RSA"
+    lines = f.readlines()
+    print(f"Number of lines in key: {len(lines)}")
+    start = 0
+    beginning_of_key = "-----BEGIN " + tag + " PRIVATE KEY-----"
+    while start < len(lines) and lines[start].strip() != beginning_of_key:
+        print(f"Line {start} has {len(lines[start])} characters")
+        start += 1
+    if start >= len(lines):
+        print(f"start = {start}, so not a valid {tag} private key file")
+    # parse any headers first
+    headers = {}
+    start += 1
+    while start < len(lines):
+        l = lines[start].split(": ")
+        if len(l) == 1:
+            print("Parsed a line with no header.")
+            break
+        print(f"Parsed a line with header {l[0].lower()}")
+        headers[l[0].lower()] = l[1].strip()
+        start += 1
+    # find end
+    end = start
+    ending_of_key = "-----END " + tag + " PRIVATE KEY-----"
+    while end < len(lines) and lines[end].strip() != ending_of_key:
+        end += 1
+    # if we trudged to the end of the file, just try to cope.
+    try:
+        data = base64.decodebytes(b("".join(lines[start:end])))
+    except base64.binascii.Error as e:
+        print(f"base64 decoding error: {str(e)}")
+    if "proc-type" not in headers:
+        # unencryped: done
+        print(f"We have data - {len(data)} bytes")
+    # encrypted keyfile: will need a password
+    proc_type = headers["proc-type"]
+    if proc_type != "4,ENCRYPTED":
+        print('Unknown private key structure "{}"'.format(proc_type))
+    try:
+        encryption_type, saltstr = headers["dek-info"].split(",")
+    except:
+        print("Can't parse DEK-info in private key file")
+    print('Stop here')
+
+
+def b(s, encoding="utf8"):
+    """cast unicode or bytes to bytes"""
+    if isinstance(s, bytes):
+        return s
+    elif isinstance(s, str):
+        return s.encode(encoding)
+    else:
+        raise TypeError("Expected unicode or bytes, got {!r}".format(s))
 
 
 if __name__ == "__main__":
