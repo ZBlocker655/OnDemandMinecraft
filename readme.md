@@ -172,3 +172,54 @@ The title and header for the site can be changed in **/templates/index.html**. F
 
 ## Server Maintenance
 Maintaining the server is fairly straightforward and is done primarily through FileZilla. Updating the server file can be done by downloading the new server file, renaming it to **server.jar** and replacing the old file on the server. The world file can be backed up to your PC manually though there is no automated process at this time.
+
+# Add new server
+
+## Set up new EC2 instance
+
+## Set up EventBridge alarms
+
+## Follow instructions under "AWS Configuration"
+
+### Exceptions
+
+- No Forge
+- No crontab (will use EventBridge instead)
+
+### Further steps
+
+- Run Minecraft locally - set up world
+- FTP over any data packs
+- Run Minecraft again - using screen command - make sure it works
+- Try connect from Minecraft client
+
+## Push update to Heroku page
+
+- Update environment variables at Heroku
+  - `NUM_INSTANCES` increment
+  - `INSTANCE_ID_{N}` - set to EC2 instance ID
+  - `SSH_KEY_{N}` - set to content of `minecraft2.pem` with newlines removed
+- Update `index.html` with new step
+- `git push heroku main`
+
+## Verify
+
+- Start server from web page - confirm connect
+
+# Heroku commands
+
+## List environment variables
+
+`heroku config`
+
+## Set environment variable
+
+`heroku config:set VAR_NAME=value`
+
+### Set SSH key
+
+Do this through the Heroku GUI!!!
+
+## View logs
+
+`heroku logs`
